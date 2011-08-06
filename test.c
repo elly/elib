@@ -5,9 +5,8 @@ int main(void) {
 	smsg *msg;
 	ipc_handle *h = ipc_connect(ipc, "/tmp/ipc");
 	msg = smsg_new();
-	smsg_addint(msg, 3);
-	smsg_addstr(msg, "lolol");
-	smsg_adduint(msg, 10);
+	smsg_addstr(msg, "hello");
+	smsg_addstr(msg, "world");
 	ipc_send(h, msg);
 	return 0;
 }

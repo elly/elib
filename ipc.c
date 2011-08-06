@@ -22,7 +22,7 @@ struct ipc_handle {
 struct ipc_hook {
 	struct node node;
 	const char *name;
-	void (*func)(void *, smsg *);
+	ipc_func fn;
 	void *state;
 };
 
@@ -45,9 +45,34 @@ static void destroyipc(struct ref *ref) {
 
 static void cliread(struct socket *c) {
 	char buf[maxmsglen];
-	if (read(c->fd, buf, sizeof(buf)) != maxmsglen)
+	smsg *msg;
+	buffer *b;
+	const char *fn = NULL;
+	struct node *n;
+	struct ipc_hook *h;
+	struct ipc *ipc = c->priv;
+	smsg *reply;
+
+	if (read(c->fd, buf, sizeof(buf)) < 0)
 		return;
-	/* ... */
+	b = buffer_newfrom(buf, sizeof(buf));
+	msg = smsg_frombuf(b);
+	if (!msg)
+		return;
+	buffer_free(b);
+
+	if (smsg_gettype(msg, 0) != SMSG_STR)
+		return;
+	if (smsg_getstr(msg, 0, &fn))
+		return;
+
+	list_foreach(&ipc->hooks, n) {
+		h = n->data;
+		if (strcmp(h->name, fn))
+			continue;
+		h->fn(h->state, msg, &reply);
+		break;
+	}
 }
 
 static void cliclose(struct socket *c) {
@@ -69,6 +94,7 @@ static void srvread(struct socket *srv) {
 	}
 	c->read = cliread;
 	c->close = cliclose;
+	c->priv = ipc;
 	reactor_refresh(ipc->reactor, c);
 }
 
@@ -193,5 +219,16 @@ int ipc_send(struct ipc_handle *h, smsg *msg) {
 		free(b);
 		return errno;
 	}
+	return 0;
+}
+
+int ipc_hook(ipc *ipc, const char *name, ipc_func fn, void *state) {
+	struct ipc_hook *h = malloc(sizeof *h);
+	if (!h)
+		return -ENOMEM;
+	h->name = name;
+	h->fn = fn;
+	h->state = state;
+	list_add(&ipc->hooks, &h->node, h);
 	return 0;
 }

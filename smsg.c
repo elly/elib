@@ -181,7 +181,7 @@ static int valtobuf(buffer *b, struct smsg_val *v) {
 	return -1;
 }
 
-int smsg_tobuf(buffer *buf, smsg *msg) {
+int smsg_tobuf(buffer *buf, struct smsg *msg) {
 	struct node *n;
 	struct smsg_val *v;
 	int r = 0;
@@ -196,4 +196,63 @@ int smsg_tobuf(buffer *buf, smsg *msg) {
 		return 0;
 	buffer_free(buf);
 	return r;
+}
+
+struct smsg *_smsgfrombuf(const char *str, size_t size, size_t *i) {
+	struct smsg *msg;
+	if (str[*i] != 'l')
+		return NULL;
+	msg = smsg_new();
+	if (!msg)
+		return NULL;
+	(*i)++;
+	while (*i < size && str[*i] != 'e') {
+		if (str[*i] == 'i' && (*i + 9) < size) {
+			char *s;
+			if (smsg_addint(msg, strtol(&str[++(*i)], &s, 0)))
+				goto fail;
+			*i += s - &str[*i];
+		} else if (str[*i] == 'u' && (*i + 9) < size) {
+			char *s;
+			if (smsg_adduint(msg, strtoul(&str[++(*i)], &s, 0)))
+				goto fail;
+			*i += s - &str[*i];
+		} else if (str[*i] == 's') {
+			size_t sz;
+			char *s;
+			(*i)++;
+			sz = strtoul(&str[*i], &s, 10);
+			*i += s - &str[*i];
+			if (*s != ':')
+				goto fail;
+			(*i)++;
+			s++;
+			s = strndup(s, sz);
+			if (smsg_addstr(msg, s)) {
+				free(s);
+				goto fail;
+			}
+			*i += sz;
+		} else if (str[*i] == 'l') {
+			struct smsg *nmsg = _smsgfrombuf(str, size, i);
+			if (!nmsg)
+				goto fail;
+			if (smsg_addsmsg(msg, nmsg)) {
+				smsg_unref(nmsg);
+				goto fail;
+			}
+		}
+	}
+	return msg;
+fail:
+	smsg_unref(msg);
+	return NULL;
+}
+
+struct smsg *smsg_frombuf(buffer *buf) {
+	const char *str = buffer_data(buf);
+	size_t size = buffer_size(buf);
+	size_t i = 0;
+
+	return _smsgfrombuf(str, size, &i);
 }
