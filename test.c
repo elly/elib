@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <elib/ipc.h>
 
 int main(void) {
@@ -5,7 +7,7 @@ int main(void) {
 	smsg *msg;
 	smsg *reply = NULL;
 	ipc_handle *h = ipc_connect(ipc, "/tmp/ipc");
-	char *pong;
+	const char *pong;
 	msg = smsg_new();
 	smsg_addstr(msg, "ping");
 	smsg_addstr(msg, "lolol");

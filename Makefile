@@ -11,4 +11,4 @@ libelib.so : $(OBJS)
 	$(CC) -shared -o $@ $^
 
 clean :
-	rm -f $(OBJS) libelib.so test
+	rm -f *.o test testd libelib.so
