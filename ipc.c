@@ -43,23 +43,43 @@ static void destroyipc(struct ref *ref) {
 	free(ipc);
 }
 
-static void cliread(struct socket *c) {
+static smsg *sockreadmsg(struct socket *s) {
+	ssize_t sz;
 	char buf[maxmsglen];
-	smsg *msg;
 	buffer *b;
+	smsg *msg;
+	if ((sz = read(s->fd, buf, sizeof(buf))) < 0)
+		return NULL;
+	b = buffer_newfrom(buf, sz);
+	msg = smsg_frombuf(b);
+	if (!msg)
+		return NULL;
+	buffer_free(b);
+	return msg;
+}
+
+static int sockwritemsg(struct socket *s, smsg *m) {
+	buffer *b = buffer_new();
+	if (smsg_tobuf(b, m) || buffer_size(b) > maxmsglen) {
+		buffer_free(b);
+		return -EINVAL;
+	}
+	write(s->fd, buffer_data(b), buffer_size(b));
+	buffer_free(b);
+	return 0;
+}
+
+static void cliread(struct socket *c) {
+	smsg *msg;
 	const char *fn = NULL;
 	struct node *n;
 	struct ipc_hook *h;
 	struct ipc *ipc = c->priv;
-	smsg *reply;
+	smsg *reply = NULL;
 
-	if (read(c->fd, buf, sizeof(buf)) < 0)
-		return;
-	b = buffer_newfrom(buf, sizeof(buf));
-	msg = smsg_frombuf(b);
+	msg = sockreadmsg(c);
 	if (!msg)
 		return;
-	buffer_free(b);
 
 	if (smsg_gettype(msg, 0) != SMSG_STR)
 		return;
@@ -73,6 +93,11 @@ static void cliread(struct socket *c) {
 		h->fn(h->state, msg, &reply);
 		break;
 	}
+
+	if (!reply)
+		return;
+	sockwritemsg(c, reply);
+	smsg_unref(reply);
 }
 
 static void cliclose(struct socket *c) {
@@ -204,21 +229,18 @@ struct ipc_handle *ipc_connect(struct ipc *ipc, const char *path) {
 }
 
 int ipc_send(struct ipc_handle *h, smsg *msg) {
-	int r;
-	buffer *b = buffer_new();
-	r = smsg_tobuf(b, msg);
-	if (r) {
-		free(b);
+	return sockwritemsg(h->socket, msg);
+}
+
+int ipc_call(struct ipc_handle *h, smsg *msg, smsg **reply) {
+	int r = ipc_send(h, msg);
+	smsg *rep;
+	if (r)
 		return r;
-	}
-	if (buffer_size(b) > maxmsglen) {
-		free(b);
-		return -E2BIG;
-	}
-	if (write(h->socket->fd, buffer_data(b), buffer_size(b)) < 0) {
-		free(b);
-		return errno;
-	}
+	rep = sockreadmsg(h->socket);
+	if (!rep)
+		return -EINVAL;
+	*reply = rep;
 	return 0;
 }
 
