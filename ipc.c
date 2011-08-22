@@ -33,6 +33,7 @@ struct ipc_hook {
 
 struct ipc_handle {
 	unsigned int magic;
+	struct node node;
 	struct ipc *ipc;
 	struct socket *socket;
 	struct list hooks;
@@ -123,8 +124,8 @@ static void cliread(struct socket *c) {
 	ipc_msg_fn fn;
 
 	assert(handle->magic == MAG_HANDLE);
-	assert(handle->service);
-	assert(handle->service->magic == MAG_SERVICE);
+	if (handle->service)
+		assert(handle->service->magic == MAG_SERVICE);
 
 	msg = sockreadmsg(c);
 	if (!msg)
@@ -157,8 +158,8 @@ static void cliclose(struct socket *c) {
 
 	if (service->ondisconnect)
 		service->ondisconnect(service, handle);
+	list_del(&service->clients, &handle->node);
 	/* XXX: leak handle resources */
-	printf("free %p\n", handle);
 	efree(handle, sizeof *handle);
 }
 
@@ -192,6 +193,7 @@ static void srvread(struct socket *sock) {
 	h->ipc = srv->ipc;
 	h->service = srv;
 	h->socket = c;
+	list_add(&srv->clients, &h->node, h);
 	list_init(&h->hooks);
 	c->read = cliread;
 	c->close = cliclose;
@@ -248,7 +250,6 @@ struct ipc_service *ipc_serve(struct ipc *ipc, const char *path) {
 	sv = malloc(sizeof *sv);
 	if (!sv)
 		return NULL;
-	memset(sv, 0xCE, sizeof *sv);
 
 	sfd = socket(AF_UNIX, SOCK_SEQPACKET, 0);
 	if (sfd == -1)
@@ -268,6 +269,8 @@ struct ipc_service *ipc_serve(struct ipc *ipc, const char *path) {
 
 	s->read = srvread;
 	s->priv = sv;
+	sv->onconnect = NULL;
+	sv->ondisconnect = NULL;
 	sv->socket = s;
 	sv->ipc = ipc;
 	list_init(&sv->hooks);
@@ -323,6 +326,22 @@ void *ipc_service_priv(ipc_service *srv) {
 	return srv->priv;
 }
 
+int ipc_service_broadcast(struct ipc_service *srv, smsg *msg) {
+	struct ipc_handle *h;
+	struct node *n;
+	int r = 0;
+	int nr;
+
+	list_foreach(&srv->clients, n) {
+		h = n->data;
+		nr = ipc_handle_send(h, msg);
+		if (!r)
+			r = nr;
+	}
+
+	return r;
+}
+
 struct ipc_handle *ipc_connect(struct ipc *ipc, const char *path) {
 	struct sockaddr_un sa;
 	int fd;
@@ -359,8 +378,19 @@ struct ipc_handle *ipc_connect(struct ipc *ipc, const char *path) {
 	h->service = NULL;
 	list_init(&h->hooks);
 	s->priv = h;
+	s->read = cliread;
+	s->close = cliclose;
 	reactor_refresh(ipc->reactor, s);
+	h->magic = MAG_HANDLE;
 	return h;
+}
+
+void ipc_handle_disconnect(struct ipc_handle *handle) {
+	close(handle->socket->fd);
+}
+
+struct ipc_service *ipc_handle_service(struct ipc_handle *h) {
+	return h->service;
 }
 
 int ipc_handle_send(struct ipc_handle *h, smsg *msg) {
