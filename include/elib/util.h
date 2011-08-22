@@ -8,6 +8,7 @@
 
 /* container_of(p, c, n) -> c which contains p as member n */
 #define container_of(p, c, n) ((c *)((void *)p - offsetof(c, n)))
+#define unused(x) ((void)(x))
 
 extern void *emalloc(size_t sz);
 extern void *erealloc(void *p, size_t sz);

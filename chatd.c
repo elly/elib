@@ -4,6 +4,7 @@
 #include <elib/util.h>
 
 void msg(ipc_handle *handle, smsg *msg, smsg **reply) {
+	unused(reply);
 	ipc_service_broadcast(ipc_handle_service(handle), msg);
 }
 

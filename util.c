@@ -1,6 +1,7 @@
 /* util.c */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <elib/util.h>
 
@@ -22,11 +23,12 @@ void *emalloc(size_t sz) {
 	if (emalloc_paranoid)
 		sz += 32;
 	p = malloc(sz);
-	if (!p)
+	if (!p) {
 		if (emalloc_fatal)
 			abort();
 		else
 			return NULL;
+	}
 	if (emalloc_paranoid) {
 		memset(p, 0xD0, 16);
 		memset(p + sz - 16, 0xD1, 16);

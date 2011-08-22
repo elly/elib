@@ -1,9 +1,15 @@
 /* chat.c */
 
+#include <stdio.h>
+
 #include <elib/ipc.h>
 #include <elib/reactor.h>
+#include <elib/util.h>
 
 void msg(ipc_handle *handle, smsg *msg, smsg **reply) {
+	unused(handle);
+	unused(msg);
+	unused(reply);
 	printf("msg!\n");
 }
 

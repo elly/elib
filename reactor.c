@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <elib/reactor.h>
+#include <elib/util.h>
 
 struct reactor *reactor_new(void) {
 	struct reactor *r = emalloc(sizeof *r);

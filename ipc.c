@@ -62,7 +62,6 @@ struct ipc {
 
 static void destroyipc(struct ref *ref) {
 	struct ipc *ipc = container_of(ref, struct ipc, ref);
-	struct node *n;
 	reactor_free(ipc->reactor);
 	free(ipc);
 }
@@ -137,7 +136,6 @@ static void cliread(struct socket *c) {
 		return;
 
 	fn = findfn(handle, name);
-	printf("cliread: %s -> %p\n", name, fn);
 	if (!fn)
 		return;
 
