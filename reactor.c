@@ -7,7 +7,7 @@
 #include <elib/reactor.h>
 
 struct reactor *reactor_new(void) {
-	struct reactor *r = malloc(sizeof *r);
+	struct reactor *r = emalloc(sizeof *r);
 	if (!r)
 		return NULL;
 	r->epfd = epoll_create1(0);
@@ -20,11 +20,11 @@ struct reactor *reactor_new(void) {
 void reactor_free(struct reactor *r) {
 	assert(!r->nsockets);
 	close(r->epfd);
-	free(r);
+	efree(r, sizeof *r);
 }
 
 struct socket *reactor_add(struct reactor *r, int fd) {
-	struct socket *s = malloc(sizeof *s);
+	struct socket *s = emalloc(sizeof *s);
 	struct epoll_event evt;
 
 	if (!s)
@@ -32,10 +32,13 @@ struct socket *reactor_add(struct reactor *r, int fd) {
 
 	s->fd = fd;
 	s->r = r;
+	s->read = NULL;
+	s->write = NULL;
+	s->close = NULL;
 	evt.events = 0;
 	evt.data.ptr = s;
 	if (epoll_ctl(r->epfd, EPOLL_CTL_ADD, fd, &evt) < 0) {
-		free(s);
+		efree(s, sizeof *s);
 		return NULL;
 	}
 	r->nsockets++;
@@ -59,7 +62,8 @@ int reactor_del(struct reactor *r, struct socket *s) {
 	int v = epoll_ctl(r->epfd, EPOLL_CTL_DEL, s->fd, NULL);
 	if (v)
 		return v;
-	free(s);
+	printf("free %p\n", s);
+	efree(s, sizeof *s);
 	r->nsockets--;
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <elib/buffer.h>
+#include <elib/util.h>
 
 struct buffer {
 	size_t size;
@@ -10,7 +11,7 @@ struct buffer {
 };
 
 struct buffer *buffer_new(void) {
-	struct buffer *b = malloc(sizeof *b);
+	struct buffer *b = emalloc(sizeof *b);
 	if (!b)
 		return NULL;
 	b->size = 0;
@@ -19,13 +20,13 @@ struct buffer *buffer_new(void) {
 }
 
 struct buffer *buffer_newfrom(const void *data, size_t size) {
-	struct buffer *b = malloc(sizeof *b);
+	struct buffer *b = emalloc(sizeof *b);
 	if (!b)
 		return NULL;
 	b->size = size;
-	b->data = malloc(size);
+	b->data = emalloc(size);
 	if (!b->data) {
-		free(b);
+		efree(b, sizeof *b);
 		return NULL;
 	}
 	memcpy(b->data, data, size);
@@ -33,7 +34,7 @@ struct buffer *buffer_newfrom(const void *data, size_t size) {
 }
 
 int buffer_append(buffer *b, const void *data, size_t size) {
-	void *n = realloc(b->data, b->size + size);
+	void *n = erealloc(b->data, b->size + size);
 	if (!n)
 		return -ENOMEM;
 	b->data = n;
@@ -55,6 +56,6 @@ void *buffer_data(const struct buffer *b) {
 }
 
 void buffer_free(struct buffer *b) {
-	free(b->data);
-	free(b);
+	efree(b->data, b->size);
+	efree(b, sizeof *b);
 }

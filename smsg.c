@@ -30,7 +30,7 @@ struct smsg {
 };
 
 static struct smsg_val *valnew(void) {
-	struct smsg_val *v = malloc(sizeof *v);
+	struct smsg_val *v = emalloc(sizeof *v);
 	if (v)
 		memset(v, 0, sizeof *v);
 	return v;
@@ -38,10 +38,10 @@ static struct smsg_val *valnew(void) {
 
 static void valfree(struct smsg_val *v) {
 	if (v->u.sv)
-		free(v->u.sv);
+		estrfree(v->u.sv);
 	if (v->u.mv)
 		smsg_unref(v->u.mv);
-	free(v);
+	efree(v, sizeof *v);
 }
 
 static void destroysmsg(struct ref *ref) {
@@ -52,7 +52,7 @@ static void destroysmsg(struct ref *ref) {
 }
 
 smsg *smsg_new(void) {
-	smsg *m = malloc(sizeof *m);
+	smsg *m = emalloc(sizeof *m);
 	if (!m)
 		return NULL;
 	list_init(&m->vals);
@@ -84,7 +84,7 @@ int smsg_addstr(smsg *msg, const char *v) {
 	struct smsg_val *n = valnew();
 	if (!n)
 		return -ENOMEM;
-	n->u.sv = strdup(v);
+	n->u.sv = estrdup(v);
 	if (!n->u.sv) {
 		valfree(n);
 		return -ENOMEM;
