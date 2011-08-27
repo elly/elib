@@ -140,6 +140,7 @@ static void cliread(struct socket *c) {
 		return;
 
 	fn(handle, msg, &reply);
+	smsg_unref(msg);
 
 	if (!reply)
 		return;
