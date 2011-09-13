@@ -37,9 +37,9 @@ static struct smsg_val *valnew(void) {
 }
 
 static void valfree(struct smsg_val *v) {
-	if (v->u.sv)
+	if (v->type == SMSG_STR && v->u.sv)
 		estrfree(v->u.sv);
-	if (v->u.mv)
+	if (v->type == SMSG_SMSG && v->u.mv)
 		smsg_unref(v->u.mv);
 	efree(v, sizeof *v);
 }
@@ -207,12 +207,12 @@ struct smsg *_smsgfrombuf(const char *str, size_t size, size_t *i) {
 		return NULL;
 	(*i)++;
 	while (*i < size && str[*i] != 'e') {
-		if (str[*i] == 'i' && (*i + 9) < size) {
+		if (str[*i] == 'i' && (*i + 1) < size) {
 			char *s;
 			if (smsg_addint(msg, strtol(&str[++(*i)], &s, 0)))
 				goto fail;
 			*i += s - &str[*i];
-		} else if (str[*i] == 'u' && (*i + 9) < size) {
+		} else if (str[*i] == 'u' && (*i + 1) < size) {
 			char *s;
 			if (smsg_adduint(msg, strtoul(&str[++(*i)], &s, 0)))
 				goto fail;

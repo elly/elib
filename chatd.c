@@ -12,9 +12,11 @@ int main(void) {
 	ipc *ipc;
 	ipc_service *srv;
 
+/*
 	emalloc_paranoid++;
 	emalloc_poison++;
 	emalloc_fatal++;
+*/
 
 	ipc = ipc_new();
 	srv = ipc_serve(ipc, "/tmp/chat");

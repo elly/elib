@@ -21,6 +21,7 @@ int ipc_run(ipc *ipc);
 int ipc_fd(ipc *ipc);
 void ipc_setpriv(ipc *ipc, void *priv);
 void *ipc_priv(ipc *ipc);
+void ipc_setdebug(ipc *ipc, int on);
 
 ipc_service *ipc_serve(ipc *ipc, const char *path);
 void ipc_service_unserve(ipc_service *srv);

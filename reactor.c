@@ -63,7 +63,6 @@ int reactor_del(struct reactor *r, struct socket *s) {
 	int v = epoll_ctl(r->epfd, EPOLL_CTL_DEL, s->fd, NULL);
 	if (v)
 		return v;
-	printf("free %p\n", s);
 	efree(s, sizeof *s);
 	r->nsockets--;
 	return 0;

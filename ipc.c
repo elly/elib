@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -57,6 +58,7 @@ struct ipc {
 	struct ref ref;
 	struct reactor *reactor;
 	struct list handles;
+	int debug;
 	void *priv;
 };
 
@@ -71,22 +73,28 @@ static smsg *sockreadmsg(struct socket *s) {
 	char buf[maxmsglen];
 	buffer *b;
 	smsg *msg;
+	struct ipc_handle *h = s->priv;
 	if ((sz = read(s->fd, buf, sizeof(buf))) < 0)
 		return NULL;
 	b = buffer_newfrom(buf, sz);
 	msg = smsg_frombuf(b);
 	if (!msg)
 		return NULL;
+	if (h && h->ipc && h->ipc->debug)
+		printf("%p <- %*s\n", s, (int)sz, buf);
 	buffer_free(b);
 	return msg;
 }
 
 static int sockwritemsg(struct socket *s, smsg *m) {
+	struct ipc_handle *h = s->priv;
 	buffer *b = buffer_new();
 	if (smsg_tobuf(b, m) || buffer_size(b) > maxmsglen) {
 		buffer_free(b);
 		return -EINVAL;
 	}
+	if (h && h->ipc && h->ipc->debug)
+		printf("%p -> %*s\n", s, (int)buffer_size(b), (char *)buffer_data(b));
 	write(s->fd, buffer_data(b), buffer_size(b));
 	buffer_free(b);
 	return 0;
@@ -213,6 +221,7 @@ ipc *ipc_new(void) {
 	}
 	ref_init(&ipc->ref, destroyipc);
 	ipc->magic = MAG_IPC;
+	ipc->debug = 0;
 	return ipc;
 }
 
@@ -284,6 +293,10 @@ close:
 free:
 	free(sv);
 	return NULL;
+}
+
+void ipc_setdebug(struct ipc *ipc, int on) {
+	ipc->debug = on;
 }
 
 void ipc_service_unserve(struct ipc_service *srv) {
