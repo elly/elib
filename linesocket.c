@@ -57,11 +57,16 @@ struct linesocket *linesocket_new(struct socket *s, size_t rbufmax) {
 	struct linesocket *ls = emalloc(sizeof *ls);
 	if (!ls)
 		return NULL;
+	if (!linesocket_init(ls, s, rbufmax))
+		return ls;
+	efree(ls, sizeof *ls);
+	return NULL;
+}
+
+int linesocket_init(struct linesocket *ls, struct socket *s, size_t rbufmax) {
 	ls->rbuf = emalloc(rbufmax);
-	if (!ls->rbuf) {
-		efree(ls, sizeof *ls);
-		return NULL;
-	}
+	if (!ls->rbuf)
+		return 1;
 	ls->s = s;
 	s->priv = ls;
 	ls->line = NULL;
@@ -75,8 +80,8 @@ struct linesocket *linesocket_new(struct socket *s, size_t rbufmax) {
 	ls->wbuffill = 0;
 
 	ls->priv = NULL;
-	reactor_refresh(s->r, s);
-	return ls;
+	reactor_refresh(s->r, s);	/* XXX: failure? */
+	return 0;
 }
 
 void linesocket_free(struct linesocket *ls) {

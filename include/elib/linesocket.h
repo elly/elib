@@ -22,6 +22,7 @@ struct linesocket {
 };
 
 extern struct linesocket *linesocket_new(struct socket *s, size_t rbufmax);
+extern int linesocket_init(struct linesocket *ls, struct socket *s, size_t rbufmax);
 extern void linesocket_free(struct linesocket *ls);
 extern int linesocket_write(struct linesocket *ls, char *line);
 
