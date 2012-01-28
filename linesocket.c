@@ -45,6 +45,8 @@ static void lswrite(struct socket *s) {
 	ls->wbufsize = 0;
 	s->write = NULL;
 	reactor_refresh(s->r, s);
+	if (ls->writedone)
+		ls->writedone(ls);
 }
 
 static void lsclose(struct socket *s) {
@@ -57,16 +59,12 @@ struct linesocket *linesocket_new(struct socket *s, size_t rbufmax) {
 	struct linesocket *ls = emalloc(sizeof *ls);
 	if (!ls)
 		return NULL;
-	if (!linesocket_init(ls, s, rbufmax))
-		return ls;
-	efree(ls, sizeof *ls);
-	return NULL;
-}
-
-int linesocket_init(struct linesocket *ls, struct socket *s, size_t rbufmax) {
+	ls->wbuf = NULL;
 	ls->rbuf = emalloc(rbufmax);
-	if (!ls->rbuf)
-		return 1;
+	if (!ls->rbuf) {
+		efree(ls, sizeof *ls);
+		return NULL;
+	}
 	ls->s = s;
 	s->priv = ls;
 	ls->line = NULL;
@@ -78,10 +76,11 @@ int linesocket_init(struct linesocket *ls, struct socket *s, size_t rbufmax) {
 	ls->rbuffill = 0;
 	ls->wbufsize = 0;
 	ls->wbuffill = 0;
+	ls->writedone = NULL;
 
 	ls->priv = NULL;
 	reactor_refresh(s->r, s);	/* XXX: failure? */
-	return 0;
+	return ls;
 }
 
 void linesocket_free(struct linesocket *ls) {
@@ -90,7 +89,7 @@ void linesocket_free(struct linesocket *ls) {
 	efree(ls, sizeof *ls);
 }
 
-int linesocket_write(struct linesocket *ls, char *line) {
+int linesocket_write(struct linesocket *ls, const char *line) {
 	if (!ls->wbufsize || ls->wbufsize - ls->wbuffill < strlen(line)) {
 		size_t growby = strlen(line) - (ls->wbufsize - ls->wbuffill);
 		void *newbuf = erealloc(ls->wbuf, ls->wbufsize + growby);

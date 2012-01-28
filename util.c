@@ -85,3 +85,8 @@ char *estrdup(const char *s) {
 void estrfree(char *s) {
 	efree(s, strlen(s) + 1);
 }
+
+void estrlcpy(char *dest, const char *src, size_t sz) {
+	strncpy(dest, src, sz);
+	dest[sz - 1] = '\0';
+}

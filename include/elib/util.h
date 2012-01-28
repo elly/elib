@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 /* container_of(p, c, n) -> c which contains p as member n */
+#define elems(a) (sizeof(a)/sizeof(a[0]))
 #define container_of(p, c, n) ((c *)((void *)p - offsetof(c, n)))
 #define unused(x) ((void)(x))
 
@@ -15,6 +16,7 @@ extern void *erealloc(void *p, size_t sz);
 extern void efree(void *p, size_t sz);
 extern char *estrdup(const char *s);
 extern void estrfree(char *s);
+extern void estrlcpy(char *dest, const char *src, size_t sz);
 
 extern int emalloc_poison;
 extern int emalloc_paranoid;
