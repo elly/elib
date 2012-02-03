@@ -90,3 +90,8 @@ void estrlcpy(char *dest, const char *src, size_t sz) {
 	strncpy(dest, src, sz);
 	dest[sz - 1] = '\0';
 }
+
+void estrlcat(char *dest, const char *src, size_t sz) {
+	strncat(dest, src, sz);
+	dest[sz - 1] = '\0';
+}
