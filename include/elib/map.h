@@ -13,5 +13,6 @@ extern void map_setpriv(struct map *m, void *v);
 extern void *map_priv(struct map *m);
 extern void map_put(struct map *m, const char *key, void *val);
 extern void *map_get(struct map *m, const char *key);
+extern void map_each(struct map *m, void (*f)(const char *k, void *v, void *a), void *arg);
 
 #endif /* !ELIB_MAP_H */

@@ -12,8 +12,10 @@ struct reactor *reactor_new(void) {
 	if (!r)
 		return NULL;
 	r->epfd = epoll_create1(0);
-	if (r->epfd < 0)
+	if (r->epfd < 0) {
+		efree(r, sizeof *r);
 		return NULL;
+	}
 	r->nsockets = 0;
 	return r;
 }

@@ -91,3 +91,14 @@ void *map_get(struct map *m, const char *key) {
 	}
 	return NULL;
 }
+
+void map_each(struct map *m, void (*f)(const char *k, void *v, void *a), void *arg) {
+	uint32_t i;
+	struct node *n;
+	for (i = 0; i < elems(m->nodes); i++) {
+		list_foreach(&m->nodes[i], n) {
+			struct entry *e = n->data;
+			f(e->key, e->val, arg);
+		}
+	}
+}
