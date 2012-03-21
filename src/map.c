@@ -1,5 +1,6 @@
 /* map.c */
 
+#include <assert.h>
 #include <elib/map.h>
 #include <elib/util.h>
 #include <string.h>
@@ -33,6 +34,7 @@ struct map {
 	void (*destroy)(struct map *, const char *, void *);
 	struct list nodes[HASHSZ];
 	void *priv;
+	int iter;
 };
 
 struct map *map_new() {
@@ -41,6 +43,7 @@ struct map *map_new() {
 	memset(m, 0, sizeof *m);
 	for (i = 0; i < elems(m->nodes); i++)
 		list_init(&m->nodes[i]);
+	m->iter = 0;
 	return m;
 }
 
@@ -60,6 +63,7 @@ void map_put(struct map *m, const char *key, void *val) {
 	uint32_t h = _hash(key);
 	struct node *n;
 	struct entry *e;
+	assert(!m->iter);
 	list_foreach(&m->nodes[h % HASHSZ], n) {
 		e = n->data;
 		if (!strcmp(e->key, key)) {
@@ -95,10 +99,12 @@ void *map_get(struct map *m, const char *key) {
 void map_each(struct map *m, void (*f)(const char *k, void *v, void *a), void *arg) {
 	uint32_t i;
 	struct node *n;
+	m->iter++;
 	for (i = 0; i < elems(m->nodes); i++) {
 		list_foreach(&m->nodes[i], n) {
 			struct entry *e = n->data;
 			f(e->key, e->val, arg);
 		}
 	}
+	m->iter--;
 }

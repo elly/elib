@@ -13,5 +13,5 @@ clean :
 
 install :
 	mkdir -p /usr/local/include/elib
-	cp -r include/elib/* /usr/local/include/elib
+	cp -r ../include/elib/* /usr/local/include/elib
 	install libelib.so /usr/local/lib
