@@ -1,4 +1,4 @@
-CFLAGS := -Wall -Wextra -g -Iinclude -fPIC
+CFLAGS := -Wall -Wextra -g -I../include -fPIC
 
 SRCS := buffer.c linesocket.c list.c map.c reactor.c ref.c util.c
 OBJS := $(patsubst %.c,%.o,$(SRCS))
