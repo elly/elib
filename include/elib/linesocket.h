@@ -41,5 +41,7 @@ extern void linesocket_free(struct linesocket *ls);
 extern int linesocket_write(struct linesocket *ls, const char *line);
 /* Refreshes a linesocket, enabling or disabling readiness to read as needed. */
 extern int linesocket_refresh(struct linesocket *ls);
+/* Returns whether there is any buffered output left. */
+extern int linesocket_hasoutput(struct linesocket *ls);
 
 #endif /* !LINESOCKET_H */

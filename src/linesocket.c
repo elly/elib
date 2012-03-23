@@ -119,3 +119,7 @@ int linesocket_refresh(struct linesocket *ls) {
 	reactor_refresh(ls->s->r, ls->s);
 	return 0;
 }
+
+int linesocket_hasoutput(struct linesocket *ls) {
+	return ls->wbuffill != 0;
+}
