@@ -16,8 +16,8 @@ void uuidgen(unsigned char *uuid) {
 
 void uuid2str(char *str, const unsigned char *uuid) {
 	static const char *hex = "0123456789abcdef";
-	int i;
-	for (i = 0; i < UUIDSTRSIZE - 1; i++) {
+	int i = 0;
+	while (i < UUIDSTRSIZE - 1) {
 		str[i++] = hex[*uuid >> 4];
 		str[i++] = hex[*uuid & 0xf];
 		/* xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx */

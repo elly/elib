@@ -1,6 +1,7 @@
 /* linesocket.c */
 
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -103,5 +104,18 @@ int linesocket_write(struct linesocket *ls, const char *line) {
 		ls->s->write = lswrite;
 		reactor_refresh(ls->s->r, ls->s);
 	}
+	return 0;
+}
+
+int linesocket_refresh(struct linesocket *ls) {
+	if (ls->line)
+		ls->s->read = lsread;
+	else
+		ls->s->read = NULL;
+	if (ls->close)
+		ls->s->close = lsclose;
+	else
+		ls->s->close = NULL;
+	reactor_refresh(ls->s->r, ls->s);
 	return 0;
 }

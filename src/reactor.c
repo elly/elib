@@ -56,7 +56,7 @@ int reactor_refresh(struct reactor *r, struct socket *s) {
 		evt.events |= EPOLLIN;
 	if (s->write)
 		evt.events |= EPOLLOUT;
-	if (s->close)
+	if (s->read && s->close)
 		evt.events |= EPOLLRDHUP;
 	return epoll_ctl(r->epfd, EPOLL_CTL_MOD, s->fd, &evt);
 }

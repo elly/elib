@@ -39,5 +39,7 @@ extern void linesocket_free(struct linesocket *ls);
 /* Writes a line to the given linesocket, filling its buffer as necessary;
  * returns -ENOMEM if maximum buffer size is exceeded. */
 extern int linesocket_write(struct linesocket *ls, const char *line);
+/* Refreshes a linesocket, enabling or disabling readiness to read as needed. */
+extern int linesocket_refresh(struct linesocket *ls);
 
 #endif /* !LINESOCKET_H */
