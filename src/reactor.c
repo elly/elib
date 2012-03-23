@@ -81,14 +81,14 @@ int reactor_run(struct reactor *r) {
 		return n;
 	for (i = 0; i < n; i++) {
 		s = evts[i].data.ptr;
+		if ((evts[i].events & EPOLLIN) && s->read)
+			s->read(s);
+		if ((evts[i].events & EPOLLOUT) && s->write)
+			s->write(s);
 		if (evts[i].events & (EPOLLRDHUP | EPOLLERR | EPOLLHUP)) {
 			if (s->close)
 				s->close(s);
 			reactor_del(r, s);
-		} else if ((evts[i].events & EPOLLIN) && s->read) {
-			s->read(s);
-		} else if ((evts[i].events & EPOLLOUT) && s->write) {
-			s->write(s);
 		}
 	}
 	return 0;
