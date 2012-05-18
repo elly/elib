@@ -49,5 +49,6 @@ struct node *list_get(struct list *list, int index);
 static inline int list_size(struct list *list) { return list->size; }
 /* Returns the first node in |list|. */
 static inline struct node *list_head(struct list *list) { return list->head; }
+static inline struct node *list_tail(struct list *list) { return list->tail; }
 
 #endif /* !ELIB_LIST_H */

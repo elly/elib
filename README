@@ -1,0 +1,23 @@
+This is a library of little modules of reusable C. I consider these to be
+missing parts of libc, and I tend to use them everywhere. As a rule, things
+appear here only if I find myself writing them more than twice in different
+programs. Have a look at /include/elib for detailed API documentation for each
+of the modules, and /src for the implementation.
+
+Modules:
+* buffer: growable bytebuffers.
+* list: embedded linked lists
+* map: string->void* maps
+* ref: refcounting
+* util: memory allocation, string functions, macros
+* uuid: uuid generation
+
+There is also an implementation of an epoll-based event loop, called the
+'reactor'. The reactor is mostly defined in the 'reactor' module, with a
+'linesocket' module that adds line-buffering atop it.
+
+A few concepts appear repeatedly throughout the library:
+* Private data. Most modules have data types which support the attachment of an
+  arbitrary pointer to them (by the user of the module). For transparent data
+  types, this is a void* member of the type called 'priv'; for opaque data
+  types, this member is accessed by functions foo_setpriv() and foo_priv().

@@ -47,6 +47,19 @@ struct map *map_new() {
 	return m;
 }
 
+void map_free(struct map *m) {
+	size_t i;
+	for (i = 0; i < elems(m->nodes); i++) {
+		while (list_size(&m->nodes[i])) {
+			struct entry *e = list_head(&m->nodes[i])->data;
+			if (m->destroy)
+				m->destroy(m, e->key, e->val);
+			list_del(&m->nodes[i], &e->node);
+			efree(e, sizeof *e);
+		}
+	}
+}
+
 void map_setdestroy(struct map *m, void (*d)(struct map *, const char *, void *)) {
 	m->destroy = d;
 }
