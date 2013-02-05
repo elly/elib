@@ -1,6 +1,6 @@
 CFLAGS := -Wall -Wextra -g -I../include -fPIC
 
-SRCS := buffer.c linesocket.c list.c map.c reactor.c ref.c util.c uuid.c
+SRCS := buffer.c chunkfile.c linesocket.c list.c map.c reactor.c ref.c smsg.c util.c uuid.c
 OBJS := $(patsubst %.c,%.o,$(SRCS))
 
 all : libelib.so

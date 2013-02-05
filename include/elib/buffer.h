@@ -11,6 +11,8 @@ typedef struct buffer buffer;
 buffer *buffer_new(void);
 /* Allocate a new buffer, filled with |size| bytes from |data|. */
 buffer *buffer_newfrom(const void *data, size_t size);
+/* Allocate a new buffer, filled with the characters in |str| (null excluded) */
+buffer *buffer_newstr(const char *str);
 /* Frees |b|. */
 void buffer_free(buffer *b);
 

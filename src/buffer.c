@@ -33,6 +33,10 @@ struct buffer *buffer_newfrom(const void *data, size_t size) {
 	return b;
 }
 
+struct buffer *buffer_newstr(const char *str) {
+	return buffer_newfrom(str, strlen(str));
+}
+
 int buffer_append(buffer *b, const void *data, size_t size) {
 	void *n = erealloc(b->data, b->size + size);
 	if (!n)
