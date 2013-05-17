@@ -72,7 +72,7 @@ void *map_priv(struct map *m) {
 	return m->priv;
 }
 
-void map_put(struct map *m, const char *key, void *val) {
+int map_put(struct map *m, const char *key, void *val) {
 	uint32_t h = _hash(key);
 	struct node *n;
 	struct entry *e;
@@ -89,13 +89,16 @@ void map_put(struct map *m, const char *key, void *val) {
 				list_del(&m->nodes[h % HASHSZ], &e->node);
 				efree(e, sizeof *e);
 			}
-			return;
+			return 0;
 		}
 	}
 	e = emalloc(sizeof *e);
+	if (!e)
+		return 1;
 	e->key = key;
 	e->val = val;
 	list_add(&m->nodes[h % HASHSZ], &e->node, e);
+	return 0;
 }
 
 void *map_get(struct map *m, const char *key) {

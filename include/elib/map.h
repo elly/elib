@@ -30,7 +30,7 @@ extern void *map_priv(struct map *m);
  * destructor on it (see map_setdestroy()). Does not copy |key|; it is the
  * caller's responsibility to ensure that |key| lives at least as long as the
  * map entry. */
-extern void map_put(struct map *m, const char *key, void *val);
+extern int map_put(struct map *m, const char *key, void *val);
 
 /* Returns the value corresponding to |key| in |m|. */
 extern void *map_get(struct map *m, const char *key);
