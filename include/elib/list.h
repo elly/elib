@@ -51,4 +51,9 @@ static inline int list_size(struct list *list) { return list->size; }
 static inline struct node *list_head(struct list *list) { return list->head; }
 static inline struct node *list_tail(struct list *list) { return list->tail; }
 
+void list_check(struct list *list, int forbid_null);
+void list_dump(struct list *list);
+
+void list_append(struct list *la, struct list *lb);
+
 #endif /* !ELIB_LIST_H */
